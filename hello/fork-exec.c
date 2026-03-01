@@ -11,20 +11,16 @@ static void child1(void) {
 static void child2(void) {
   printf("Hello from Child #2 (pid %d)! About to exec ./hi\n", getpid());
 
-  // This line is from class , execl("./hi", "hi", (char*)NULL);
-  // It execs the program built from hi.c (the "exec target").
-  int status = execl("./hi", "hi", (char *)NULL);
+  execl("./hi", "hi", (char *)NULL);
 
-  // If exec succeeds, it NEVER returns. So reaching here means exec failed.
-  if (status == -1) {
-    perror("execl failed");
-    exit(EXIT_FAILURE);
-  }
-
-  _exit(0);
+  // If we get here, exec failed (exec only returns on error).
+  perror("execl failed");
+  _exit(127);
 }
 
 int main(void) {
+  setbuf(stdout, NULL); // helps prints show up right away
+
   pid_t p1 = fork();
   if (p1 < 0) {
     perror("fork child1");
@@ -35,7 +31,6 @@ int main(void) {
     child1();
   }
 
-  // Parent makes a SECOND child process
   pid_t p2 = fork();
   if (p2 < 0) {
     perror("fork child2");
@@ -48,7 +43,6 @@ int main(void) {
 
   printf("Hello from Parent (pid %d)! child1=%d child2=%d\n", getpid(), p1, p2);
 
-  // Parent waits so there are no weird stuff going
   waitpid(p1, NULL, 0);
   waitpid(p2, NULL, 0);
 
