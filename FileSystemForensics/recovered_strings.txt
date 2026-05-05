@@ -1,8 +1,0 @@
-mkfs.fat
-NO NAME    FAT16   
-This is not a bootable disk.  Please insert a bootable floppy and
-press any key to try again ... 
-ECRET  TXT 
-CASE_ID=OSD-FS-001
-EVIDENCE=Deleted files may leave recoverable data in raw filesystem space.
-SECRET=HAWAII_FILESYSTEM_FORENSICS_DEMO
