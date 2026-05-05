@@ -1,19 +1,14 @@
 # Threads, Critical Sections, and Mutexes
 
-This program demonstrates the problem of race conditions when multiple threads access shared data.
+This program demonstrates threads, critical sections, race conditions, and mutexes using POSIX threads in C.
 
-## Concept
+The program creates four threads. Each thread increments two shared counters 100,000 times.
 
-The program creates multiple POSIX threads. Each thread increments two shared counters:
+The unsafe counter is changed without a mutex. This creates a race condition because multiple threads can read, modify, and write the shared value at the same time. Because of that, the final unsafe value is usually lower than the expected value.
 
-1. `unsafe_counter`
-2. `safe_counter`
+The safe counter is changed inside a mutex-protected critical section. The mutex allows only one thread to update the counter at a time, so the final value matches the expected value.
 
-The `unsafe_counter` is incremented without a mutex. This means multiple threads can enter the critical section at the same time, causing a race condition.
-
-The `safe_counter` is incremented inside a mutex-protected critical section. The mutex allows only one thread to modify the shared variable at a time.
-
-## How to Build
+## Build
 
 ```bash
 make
