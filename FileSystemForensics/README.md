@@ -1,117 +1,123 @@
-# File System Forensics Demo
+# File System Forensics Write-Up
 
-This project demonstrates something interesting with file systems by creating a raw FAT filesystem image, deleting a file from it, and then recovering leftover file content from the raw filesystem data.
+This assignment demonstrates something interesting with file systems using a terminal-based file system forensics example.
 
-## Purpose
+I created a raw FAT filesystem image, copied a file into it, deleted the file, and then searched the raw image to show that the deleted file content could still be found.
 
-The purpose of this demo is to show that deleting a file does not always erase the file contents from storage.
+## Why I Chose This
 
-A filesystem can remove a file from the directory listing or mark its space as available, but the old data may still remain in the raw disk image until it is overwritten.
+I chose file system forensics because it connects directly to how filesystems store and delete data.
 
-## Connection to Class Demo
+A file can be deleted from the directory listing, but that does not always mean the actual data is erased from the storage area right away. The space may just be marked as available, meaning the old content can stay there until something else overwrites it.
 
-This project is based on the file-system examples from the class repository.
+## Connection to Class
 
-The class file-system demo shows how to create a raw file with dd, format it as a VFAT filesystem with mkfs.vfat, and work with that filesystem image.
+This connects to the class filesystem demos because the class examples use raw filesystem images and VFAT formatting.
 
-This project extends that idea by using a FAT filesystem image for a small forensic recovery demonstration.
+This write-up uses the same general idea:
 
-## What This Demonstrates
-
-This demo shows:
-
-1. Creating a raw disk image
-2. Formatting the image as a FAT filesystem
-3. Copying a file into the filesystem image
-4. Listing the file before deletion
-5. Deleting the file from the filesystem image
-6. Confirming the file no longer appears in the directory listing
-7. Searching the raw filesystem image for deleted content
+- create a raw image
+- format it as a FAT/VFAT filesystem
+- put files inside it
+- inspect what is left behind after deletion
 
 ## Files
 
 FileSystemForensics/
-- Dockerfile
 - Makefile
 - README.md
-- fs_forensics.sh
+- .gitignore
 
-## How to Run
+The generated files are not meant to be committed:
+
+- evidence.vfat
+- secret.txt
+- recovered_strings.txt
+
+## Tools Used
+
+This demo uses:
+
+- dd
+- mkfs.vfat
+- mcopy
+- mdir
+- mdel
+- strings
+- grep
+
+The FAT tools come from dosfstools and mtools.
+
+## Setup
+
+Run this if the tools are not installed:
+
+    make setup
+
+## How to Run the Demo
 
 Run:
 
-make run
+    make run
 
-The Makefile tries to use Docker if Docker is available.
+or:
 
-If Docker is not available, the Makefile runs the script locally. The local version requires dosfstools, mtools, and binutils.
-
-## How to Run Locally
-
-Run:
-
-make run-local
-
-## How to Run With Docker
-
-Run:
-
-make run-docker
+    make demo
 
 ## How to Clean
 
 Run:
 
-make clean
+    make clean
 
-## Expected Behavior
+## What the Demo Does
 
-The script creates a raw FAT filesystem image named evidence.vfat.
+The Makefile runs the terminal commands needed for the demo.
 
-It then creates a file named secret.txt and copies it into the filesystem image as SECRET.TXT.
+First, it creates a 16 MB raw image:
 
-Before deletion, the directory listing shows SECRET.TXT.
+    dd if=/dev/zero of=evidence.vfat bs=1M count=16 status=none
 
-After deletion, the directory listing shows no files.
+Then it formats the image as a FAT filesystem:
 
-The script then runs strings against the raw filesystem image and searches for the deleted evidence string.
+    mkfs.vfat evidence.vfat
 
-## Evidence String
+Then it creates an evidence file named secret.txt with this content:
 
-The deleted evidence string is:
+    SECRET=HAWAII_FILESYSTEM_FORENSICS_DEMO
 
-SECRET=HAWAII_FILESYSTEM_FORENSICS_DEMO
+Then it copies that file into the filesystem image as SECRET.TXT.
 
-If this string is found after SECRET.TXT was deleted, the demo shows that deleted file content can still remain inside raw filesystem data.
+After that, it lists the filesystem image and shows that SECRET.TXT exists.
 
-## Example Output
+Then it deletes SECRET.TXT from the filesystem image.
 
-File System Forensics Demo
+After deletion, the directory listing shows:
 
-[1] Creating a 16 MB raw disk image...
-[2] Formatting the image as a FAT filesystem...
-[3] Creating an evidence file with recognizable content...
-[4] Copying the evidence file into the FAT filesystem image...
-[5] Listing files inside the filesystem image before deletion...
+    No files
 
-SECRET   TXT       134
+Finally, it runs strings on the raw filesystem image and searches for the deleted evidence string.
 
-[6] Deleting SECRET.TXT from the filesystem image...
-[7] Listing files inside the filesystem image after deletion...
+## Expected Result
 
-No files
+The important result is that the file is gone from the normal directory listing, but the raw filesystem image still contains the deleted file content.
 
-[8] Running strings against the raw filesystem image...
-[9] Searching the raw image for deleted evidence content...
+Example result:
 
-8:SECRET=HAWAII_FILESYSTEM_FORENSICS_DEMO
+    SECRET   TXT       134
 
-Recovered deleted file content from raw filesystem data.
+Then after deletion:
 
-## Main Concept
+    No files
 
-This is a file-system forensics demonstration.
+Then the deleted content is still found:
 
-The important idea is that file deletion and data destruction are not the same thing.
+    SECRET=HAWAII_FILESYSTEM_FORENSICS_DEMO
 
-A deleted file may disappear from the normal directory listing, but forensic tools can sometimes recover leftover content from the raw filesystem image.
+## Main Point
+
+This shows that deleting a file and destroying the data are not always the same thing.
+
+The file no longer appears in the filesystem directory listing, but the content can still be recovered from raw filesystem data.
+
+That is why file system forensics matters. Deleted files may still leave evidence behind until the storage space is overwritten.
